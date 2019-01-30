@@ -1,0 +1,224 @@
+&ACCESS RVP
+&REL 57
+def  kuka_eki_hw_interface()
+   ;FOLD License
+   ; Software License Agreement (BSD License)
+   ;
+   ; Copyright (c) 2018, 3M
+   ; Copyright (c) 2018, Norwegian University of Science and Technology
+   ; All rights reserved.
+   ;
+   ; Redistribution and use in source and binary forms, with or without
+   ; modification, are permitted provided that the following conditions are met:
+   ;
+   ;      * Redistributions of source code must retain the above copyright
+   ;        notice, this list of conditions and the following disclaimer.
+   ;      * Redistributions in binary form must reproduce the above copyright
+   ;        notice, this list of conditions and the following disclaimer in the
+   ;        documentation and/or other materials provided with the distribution.
+   ;      * Neither the name of the copyright holder, nor the names of its
+   ;        contributors may be used to endorse or promote products derived
+   ;        from this software without specific prior written permission.
+   ;
+   ; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+   ; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+   ; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+   ; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+   ; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+   ; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+   ; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+   ; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+   ; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+   ; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+   ; POSSIBILITY OF SUCH DAMAGE.
+
+   ; Author: Brett Hemes (3M) <brhemes@mmm.com>
+   ; Modified by: Lars Tingelstad (NTNU) <lars.tingelstad@ntnu.no>
+   
+   ;ENDFOLD
+
+   ;FOLD Declarations
+   decl int cmd_type_tgt
+   decl e6pos cart_pos_tgt
+   decl axis joint_pos_tgt
+   decl real max_vel_scale_tgt
+   decl int elements_read
+   ;ENDFOLD
+
+   ;FOLD INI
+   bas(#initmov, 0)  ; Basic initializasion of axes
+   ;ENDFOLD
+   
+   ; Initialize eki_hw_interface server
+   ;   Config located in C:/ROBOTER/Config/User/Common/EthernetKRL/EkiHwInterface.xml
+   ;   Starts a TCP state sever on xml-specified IP address/port.
+   ;
+   ;   State transmission is periodic (currently determined by $timer[1]=-## line in
+   ;   eki_hw_iface_send()
+   ;
+   ;   Joint position commands execute as they come in.
+   ;   PTP motions are blended in joint-space via c_ptp approximation when possible
+   ;   via the advance run.  The advance run will read and blend command points as
+   ;   soon as the become available up to value set in $advance (in range [0, 5])
+   ;
+   ;   Utilized system resources:
+   ;     Flags:
+   ;       $flag[1]:        Indicates active client connection
+   ;       $timer_flag[1]:  Used to trigger periodic send of robot state
+   ;     Interrupts:
+   ;       15: Calls eki_hw_iface_reset() on falling edge of $flag[1]
+   ;       16: Calls eki_hw_iface_send() on rising edge of $timer_flag[1]
+   eki_hw_iface_init()
+
+   ; BCO (Block COincidence) run to current position
+   ; (requied for below loop continue before first incoming command)
+   joint_pos_tgt = $axis_act_meas
+   cart_pos_tgt = $pos_act_mes
+   max_vel_scale_tgt = 1.0
+   cmd_type_tgt = 0
+
+   ptp joint_pos_tgt
+
+   ; Loop forever
+   $advance = 3
+   loop
+      ; Get new command from buffer if present
+      elements_read = eki_hw_iface_get(cmd_type_tgt, joint_pos_tgt, cart_pos_tgt, max_vel_scale_tgt)  
+      $ov_pro = 100 * max_vel_scale_tgt
+      switch cmd_type_tgt
+         case 1
+            ptp joint_pos_tgt
+         case 2
+            ptp cart_pos_tgt
+         case 3
+            lin cart_pos_tgt
+         case 4
+            ptp_rel joint_pos_tgt
+         case 5
+            lin_rel cart_pos_tgt
+      endswitch
+   endloop
+
+   ; Note: EKI channels delete on reset or deselect of this program
+   ;       See <ENVIRONMENT>Program</ENVIRONMENT> EKI config element
+end
+
+
+
+def eki_hw_iface_init()
+   decl eki_status eki_ret
+
+   ; Setup interrupts
+   ; Interrupt 15 - Connection cleanup on client disconnect
+   global interrupt decl 15 when $flag[1]==false do eki_hw_iface_reset()
+   interrupt on 15
+   ; Interrupt 16 - Timer interrupt for periodic state transmission
+   global interrupt decl 16 when $timer_flag[1]==true do eki_hw_iface_send()
+   interrupt on 16
+   wait sec 0.012          ; Wait for next interpolation cycle
+   $timer[1] = -200        ; Time in [ms] before first interrupt call
+   $timer_stop[1] = false  ; Start timer 1
+
+   ; Create and open EKI interface
+   eki_ret = eki_init("EkiHwInterface")
+   eki_ret = eki_open("EkiHwInterface")
+end
+
+
+def eki_hw_iface_send()
+   decl eki_status eki_ret
+
+   if $flag[1] then  ; If connection alive
+      ; Load state values into xml structure
+      ; joint position
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Axis/@A1", $axis_act_meas.a1)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Axis/@A2", $axis_act_meas.a2)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Axis/@A3", $axis_act_meas.a3)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Axis/@A4", $axis_act_meas.a4)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Axis/@A5", $axis_act_meas.a5)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Axis/@A6", $axis_act_meas.a6)
+      ; cartesian position
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Cart/@X", $pos_act_mes.x)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Cart/@Y", $pos_act_mes.y)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Cart/@Z", $pos_act_mes.z)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Cart/@A", $pos_act_mes.a)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Cart/@B", $pos_act_mes.b)
+      eki_ret = eki_setreal("EkiHwInterface", "RobotState/Cart/@C", $pos_act_mes.c)
+      ; interface state
+      eki_ret = eki_checkbuffer("EkiHwInterface", "RobotCommand/Axis/@A1")
+      eki_ret = eki_setint("EkiHwInterface", "RobotState/RobotCommand/@Size", eki_ret.buff)
+
+      ; Send xml structure
+      if $flag[1] then  ; Make sure connection hasn't died while updating xml structure
+         eki_ret = eki_send("EkiHwInterface", "RobotState")
+      endif
+   endif
+
+   ; Set timer for next interrupt [ms]
+   $timer[1] = -10  ; ~10 ms for above send + 10 ms interrupt timer -> ~50 Hz state transmission
+end
+
+
+
+deffct int eki_hw_iface_available()
+   decl eki_status eki_ret
+
+   if not $flag[1] then
+      return 0
+   endif
+
+   eki_ret = eki_checkbuffer("EkiHwInterface", "RobotCommand/Axis/@A1")
+   return eki_ret.buff
+endfct
+
+
+
+; eki_hw_iface_get
+; Tries to read most recent elemnt from buffer. q left unchanged if empty.
+; Returns number of elements read.
+deffct int eki_hw_iface_get(cmd_type_cmd :out, joint_pos_cmd :out, cart_pos_cmd :out, max_vel_scale_cmd :out)
+   decl eki_status eki_ret
+   decl int cmd_type_cmd
+   decl e6pos cart_pos_cmd
+   decl axis joint_pos_cmd
+   decl real max_vel_scale_cmd
+
+   if not $flag[1] then
+      return 0
+   endif
+
+   eki_ret = eki_checkbuffer("EkiHwInterface", "RobotCommand/Type")
+   if eki_ret.buff <= 0 then
+     return 0
+   endif
+
+   eki_ret = eki_getint("EkiHwInterface", "RobotCommand/Type", cmd_type_cmd)
+
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Axis/@A1", joint_pos_cmd.a1)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Axis/@A2", joint_pos_cmd.a2)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Axis/@A3", joint_pos_cmd.a3)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Axis/@A4", joint_pos_cmd.a4)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Axis/@A5", joint_pos_cmd.a5)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Axis/@A6", joint_pos_cmd.a6)
+
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Cart/@X", cart_pos_cmd.x)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Cart/@Y", cart_pos_cmd.y)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Cart/@Z", cart_pos_cmd.z)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Cart/@A", cart_pos_cmd.a)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Cart/@B", cart_pos_cmd.b)
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Cart/@C", cart_pos_cmd.c)
+
+   eki_ret = eki_getreal("EkiHwInterface", "RobotCommand/Velocity", max_vel_scale_cmd)
+
+   return 1
+endfct
+
+
+
+def eki_hw_iface_reset()
+   decl eki_status eki_ret
+
+   eki_ret = eki_clear("EkiHwInterface")
+   eki_ret = eki_init("EkiHwInterface")
+   eki_ret = eki_open("EkiHwInterface")
+end

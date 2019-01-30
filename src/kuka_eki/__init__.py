@@ -1,0 +1,5 @@
+
+
+
+def printeki():
+    print('eki')

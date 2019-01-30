@@ -1,0 +1,66 @@
+<ETHERNETKRL>
+   <CONFIGURATION>
+      <EXTERNAL>
+         <TYPE>Client</TYPE>         <!-- Users connect as clients -->
+      </EXTERNAL>
+      <INTERNAL>
+         <ENVIRONMENT>Program</ENVIRONMENT>         <!-- Server run via robot interpreter -->
+         <!-- Allow buffering of up to 512 messages (system max) -->
+         <BUFFERING Limit="512" />
+         <!-- Use $flag[1] to indicate alive/good connection status -->
+         <ALIVE Set_Flag="1" />
+         <IP>192.168.250.20</IP>         <!-- IP address for EKI interface on robot controller (KRC) -->
+         <PORT>54600</PORT>         <!-- Port of EKI interface on robot controller (in [54600, 54615]) -->
+         <PROTOCOL>UDP</PROTOCOL>         <!-- Use UDP protocol -->
+      </INTERNAL>
+   </CONFIGURATION>
+   <RECEIVE>
+      <XML>
+         <!-- Command type -->
+         <!-- 1: PTP joint space -->
+         <!-- 2: PTP operational space -->
+         <!-- 3: LIN operational space -->
+         <!-- 4: PTP_REL joint space -->
+         <!-- 5: LIN_REL operational space -->
+         <ELEMENT Tag="RobotCommand/Type" Type="INT" />
+         <!-- E6AXIS command -->
+         <ELEMENT Tag="RobotCommand/Axis/@A1" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Axis/@A2" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Axis/@A3" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Axis/@A4" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Axis/@A5" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Axis/@A6" Type="REAL" />
+         <!-- E6POS command -->
+         <ELEMENT Tag="RobotCommand/Cart/@X" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Cart/@Y" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Cart/@Z" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Cart/@A" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Cart/@B" Type="REAL" />
+         <ELEMENT Tag="RobotCommand/Cart/@C" Type="REAL" />
+         <!-- Max velocity scaling -->
+         <ELEMENT Tag="RobotCommand/Velocity" Type="REAL" />
+      </XML>
+   </RECEIVE>
+   <SEND>
+      <XML>
+         <!-- Joint state positions -->
+         <ELEMENT Tag="RobotState/Axis/@A1"/>
+         <ELEMENT Tag="RobotState/Axis/@A2"/>
+         <ELEMENT Tag="RobotState/Axis/@A3"/>
+         <ELEMENT Tag="RobotState/Axis/@A4"/>
+         <ELEMENT Tag="RobotState/Axis/@A5"/>
+         <ELEMENT Tag="RobotState/Axis/@A6"/>
+         <!-- Cartesian state positions -->
+         <ELEMENT Tag="RobotState/Cart/@X"/>
+         <ELEMENT Tag="RobotState/Cart/@Y"/>
+         <ELEMENT Tag="RobotState/Cart/@Z"/>
+         <ELEMENT Tag="RobotState/Cart/@A"/>
+         <ELEMENT Tag="RobotState/Cart/@B"/>
+         <ELEMENT Tag="RobotState/Cart/@C"/>
+         <!-- Interface state -->
+         <!-- Number of elements currently in command buffer -->
+         <ELEMENT Tag="RobotState/RobotCommand/@Size"/> 
+         <ELEMENT Tag="RobotState" Set_Flag="56"/>
+      </XML>
+   </SEND>
+</ETHERNETKRL>

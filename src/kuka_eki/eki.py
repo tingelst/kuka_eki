@@ -18,9 +18,8 @@ class EKIDriver(object):
     def __init__(self, addr):
         self._conn = UDPClient(addr)
 
-
     def start(self):
-           self._conn.send(b'0')
+        self._conn.send(b'0')
 
     def _cmd_xml(self, cmdtype=0,
                  a1=0.0, a2=0.0, a3=0.0, a4=0.0, a5=0.0, a6=0.0,

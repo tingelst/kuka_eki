@@ -1,0 +1,17 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/lars/ros/etasl-rtt_ws/devel/include",
+        "/opt/ros/kinetic/include",
+        "/home/lars/ros/manulab_ws/src/rtt-rsi/include",
+        "/usr/include"
+      ],
+      "name": "Linux"
+    }
+  ]
+}

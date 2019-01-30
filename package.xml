@@ -6,17 +6,15 @@
   <author>Lars Tingelstad</author>
   <maintainer email="lars.tingelstad@ntnu.no">Lars Tingelstad</maintainer>
   <license>BSD</license>
-
   <url type="bugtracker">https://github.com/tingelst/kuka_eki/issues</url>
   <url type="repository">https://github.com/tingelst/kuka_eki</url>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <buildtool_depend>python-catkin-pkg</buildtool_depend>
 
-  <!-- <build_depend>angles</build_depend>
-  <build_depend>cmake_modules</build_depend>
-
-  <depend>controller_manager</depend>
-  <depend>hardware_interface</depend>
-  <depend>joint_limits_interface</depend>
-  <depend>roscpp</depend> -->
+  <depend>geometry_msgs</depend>
+  <depend>python</depend>
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>kuka_eki_msgs</depend>
 </package>

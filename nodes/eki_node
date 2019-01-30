@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-from kuka_eki import printeki
+from kuka_eki import EKIDriver
 
 if __name__== '__main__':
-     printeki()
+     driver = EKIDriver(('127.0.0.1', 49152))
+
+     rospy.loginfo(driver._cmd_xml())

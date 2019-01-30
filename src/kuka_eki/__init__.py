@@ -1,5 +1,2 @@
 
-
-
-def printeki():
-    print('eki')
+from .eki import EKIDriver

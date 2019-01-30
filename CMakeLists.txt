@@ -5,7 +5,6 @@ project(kuka_eki_msgs)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  rospy
   std_msgs
   sensor_msgs
   geometry_msgs
@@ -55,8 +54,16 @@ find_package(catkin REQUIRED COMPONENTS
 add_service_files(
   DIRECTORY srv
   FILES
+  MoveLinCart.srv
+  MoveLinCartRel.srv
   MovePtpAxis.srv
+  MovePtpAxisRel.srv
+  MovePtpCart.srv
+  StartRsiAxis.srv 
+  StartRsiCart.srv
 )
+
+
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -70,6 +77,7 @@ generate_messages(
   DEPENDENCIES
   std_msgs
   sensor_msgs
+  geometry_msgs
 )
 
 ################################################

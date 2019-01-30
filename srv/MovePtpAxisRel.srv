@@ -2,4 +2,6 @@ Header header
 
 sensor_msgs/JointState target
 
+float64 max_velocity_scaling
+
 ---

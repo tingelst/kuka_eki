@@ -10,8 +10,8 @@ from kuka_eki_msgs.srv import (
 class EKINode(object):
 
     def __init__(self, name, addr):
-
         self._ptp_axis_service = rospy.Service(name + '/ptp_axis', MovePtpAxis, self._ptp_axis)
+
         self._driver = EKIDriver(addr)
         self._driver.start()
 

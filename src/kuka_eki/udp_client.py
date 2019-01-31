@@ -1,6 +1,7 @@
 from enum import Enum
 import socket
 
+
 class UDPClient:
     def __init__(self, addr):
         self._addr = addr
@@ -15,6 +16,9 @@ class UDPClient:
     def recv(self, size):
         data, addr = self._socket.recvfrom(size)
         return data
+
+    def settimeout(self, timeout):
+        self._socket.settimeout(timeout)
 
     def __del__(self):
         self._socket.close()

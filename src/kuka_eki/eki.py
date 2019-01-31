@@ -1,4 +1,5 @@
 from enum import Enum
+from threading import Thread, Lock
 
 from .udp_client import UDPClient
 
@@ -18,8 +19,20 @@ class EKIDriver(object):
     def __init__(self, addr):
         self._conn = UDPClient(addr)
 
+        self._receiver_thread = Thread(target=self._recv_state)
+
+        self._state_lock = Lock()
+        self._state = None
+        
     def start(self):
         self._conn.send(b'0')
+        # self._receiver_thread.start()
+
+    def _recv_state(self):
+        data = self._conn.recv(1024)
+        self._conn.settimeout(0.1)
+        while True:
+            self._state = data
 
     def _cmd_xml(self, cmdtype=0,
                  a1=0.0, a2=0.0, a3=0.0, a4=0.0, a5=0.0, a6=0.0,

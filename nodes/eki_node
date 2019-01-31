@@ -3,6 +3,8 @@
 import rospy
 from kuka_eki import EKIDriver
 
+from kuka_eki_msgs.msg import (PtpAxisCmd, PtpCartCmd, PtpCartPoseCmd)
+
 from kuka_eki_msgs.srv import (
     MovePtpAxis, MovePtpAxisRequest, MovePtpAxisResponse)
 
@@ -10,13 +12,21 @@ from kuka_eki_msgs.srv import (
 class EKINode(object):
 
     def __init__(self, name, addr):
-        self._ptp_axis_service = rospy.Service(name + '/ptp_axis', MovePtpAxis, self._ptp_axis)
+        self._ptp_axis_service = rospy.Service(
+            name + '/ptp_axis', MovePtpAxis, self._ptp_axis)
 
         self._driver = EKIDriver(addr)
         self._driver.start()
 
     def _ptp_axis(self, req):
-        rospy.loginfo(req)
+        self._driver.ptp_axis([
+            req.command.a1,
+            req.command.a2,
+            req.command.a3,
+            req.command.a4,
+            req.command.a5,
+            req.command.a6],
+            req.command.max_velocity_scaling)
         return MovePtpAxisResponse()
 
 
@@ -24,5 +34,5 @@ if __name__ == '__main__':
 
     name = 'eki_node'
     rospy.init_node(name)
-    eki_node = EKINode(name, ('127.0.0.1', 49152))
+    eki_node = EKINode(name, ('192.168.250.20', 54600))
     rospy.spin()

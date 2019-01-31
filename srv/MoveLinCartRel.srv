@@ -1,7 +1,5 @@
 Header header
 
-geometry_msgs/Pose pose
-
-float64 max_velocity_scaling
+kuka_eki_msgs/PtpCartCmd command
 
 ---

@@ -8,12 +8,36 @@ from kuka_eki_msgs.msg import (PtpAxisCmd, PtpCartCmd, PtpCartPoseCmd)
 from kuka_eki_msgs.srv import (
     MovePtpAxis, MovePtpAxisRequest, MovePtpAxisResponse)
 
+from kuka_eki_msgs.srv import (
+    MovePtpAxisRel, MovePtpAxisRelRequest, MovePtpAxisRelResponse)
+
+from kuka_eki_msgs.srv import (
+    MoveLinCart, MoveLinCartRequest, MoveLinCartResponse)
+
+from kuka_eki_msgs.srv import (
+    MoveLinCartRel, MoveLinCartRelRequest, MoveLinCartRelResponse)
+
+from kuka_eki_msgs.srv import (
+    MovePtpCart, MovePtpCartRequest, MovePtpCartResponse)
+
 
 class EKINode(object):
 
     def __init__(self, name, addr):
         self._ptp_axis_service = rospy.Service(
             name + '/ptp_axis', MovePtpAxis, self._ptp_axis)
+
+        self._ptp_axis_rel_service = rospy.Service(
+            name + '/ptp_axis_rel', MovePtpAxisRel, self._ptp_axis_rel)
+
+        self._lin_cart_rel_service = rospy.Service(
+            name + '/lin_cart', MoveLinCart, self._lin_cart)
+
+        self._lin_cart_rel_service = rospy.Service(
+            name + '/lin_cart_rel', MoveLinCartRel, self._lin_cart_rel)
+
+        self._ptp_cart_service = rospy.Service(
+            name + '/ptp_cart', MovePtpCart, self._ptp_cart)
 
         self._driver = EKIDriver(addr)
         self._driver.start()
@@ -28,6 +52,51 @@ class EKINode(object):
             req.command.a6],
             req.command.max_velocity_scaling)
         return MovePtpAxisResponse()
+
+    def _ptp_axis_rel(self, req):
+        rospy.loginfo("Relative axis motion!")
+        self._driver.ptp_axis_rel([
+            req.command.a1,
+            req.command.a2,
+            req.command.a3,
+            req.command.a4,
+            req.command.a5,
+            req.command.a6],
+            req.command.max_velocity_scaling)
+        return MovePtpAxisRelResponse()
+
+    def _lin_cart(self, req):
+        self._driver.lin_cart([
+            req.command.x,
+            req.command.y,
+            req.command.z,
+            req.command.a,
+            req.command.b,
+            req.command.c],
+            req.command.max_velocity_scaling)
+        return MoveLinCartResponse()
+
+    def _lin_cart_rel(self, req):
+        self._driver.lin_cart_rel([
+            req.command.x,
+            req.command.y,
+            req.command.z,
+            req.command.a,
+            req.command.b,
+            req.command.c],
+            req.command.max_velocity_scaling)
+        return MoveLinCartRelResponse()
+
+    def _ptp_cart(self, req):
+        self._driver.ptp_cart([
+            req.command.x,
+            req.command.y,
+            req.command.z,
+            req.command.a,
+            req.command.b,
+            req.command.c],
+            req.command.max_velocity_scaling)
+        return MovePtpCartResponse()
 
 
 if __name__ == '__main__':

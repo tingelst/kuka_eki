@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<launch>
-    <node name='kuka_eki' pkg='kuka_eki' type="eki_node"/>
-</launch>

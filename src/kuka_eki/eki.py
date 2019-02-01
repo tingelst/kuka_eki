@@ -18,17 +18,9 @@ class EKIDriver(object):
 
     def __init__(self, addr):
         self._conn = UDPClient(addr)
-        self._conn_state = UDPClient(('192.168.250.20', 54602))
-
-        self._receiver_thread = Thread(target=self._recv_state)
-
-        # self._state_lock = Lock()
-        # self._state = None
 
     def start(self):
         self._conn.send(b'0')
-        self._conn_state.send(b'0')
-        self._receiver_thread.start()
 
     def _recv_state(self):
         while True:
@@ -118,9 +110,3 @@ class EKIDriver(object):
     def rsi_cart(self,):
         xml = self._cmd_xml(CmdType.RSI_CART.value)
         self._conn.send(xml)
-
-    # def state(self):
-    #     self._state_lock.acquire()
-    #     data = self._state
-    #     self._state_lock.release()
-    #     return data

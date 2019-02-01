@@ -100,7 +100,6 @@ class EKINode(object):
 
 
 if __name__ == '__main__':
-
     name = 'eki_node'
     rospy.init_node(name)
     eki_node = EKINode(name, ('192.168.250.20', 54600))

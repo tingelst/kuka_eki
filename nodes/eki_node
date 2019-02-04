@@ -20,6 +20,9 @@ from kuka_eki_msgs.srv import (
 from kuka_eki_msgs.srv import (
     MovePtpCart, MovePtpCartRequest, MovePtpCartResponse)
 
+from kuka_eki_msgs.srv import (
+    StartRsiAxis, StartRsiAxisRequest, StartRsiAxisResponse)
+
 
 class EKINode(object):
 
@@ -38,6 +41,9 @@ class EKINode(object):
 
         self._ptp_cart_service = rospy.Service(
             name + '/ptp_cart', MovePtpCart, self._ptp_cart)
+
+        self._ptp_cart_service = rospy.Service(
+            name + '/rsi_axis', StartRsiAxis, self._start_rsi_axis)
 
         self._driver = EKIDriver(addr)
         self._driver.start()
@@ -97,6 +103,10 @@ class EKINode(object):
             req.command.c],
             req.command.max_velocity_scaling)
         return MovePtpCartResponse()
+
+    def _start_rsi_axis(self, req):
+        self._driver.start_rsi_axis()
+        return StartRsiAxisResponse()
 
 
 if __name__ == '__main__':

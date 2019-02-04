@@ -103,10 +103,10 @@ class EKIDriver(object):
             vel=max_velocity_scaling)
         self._conn.send(xml)
 
-    def rsi_axis(self,):
+    def start_rsi_axis(self):
         xml = self._cmd_xml(CmdType.RSI_AXIS.value)
         self._conn.send(xml)
 
-    def rsi_cart(self,):
+    def start_rsi_cart(self):
         xml = self._cmd_xml(CmdType.RSI_CART.value)
         self._conn.send(xml)

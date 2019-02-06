@@ -104,9 +104,9 @@ class EKIDriver(object):
         self._conn.send(xml)
 
     def start_rsi_axis(self):
-        xml = self._cmd_xml(CmdType.RSI_AXIS.value)
+        xml = self._cmd_xml(CmdType.RSI_AXIS.value, vel=1.0)
         self._conn.send(xml)
 
     def start_rsi_cart(self):
-        xml = self._cmd_xml(CmdType.RSI_CART.value)
+        xml = self._cmd_xml(CmdType.RSI_CART.value, vel=1.0)
         self._conn.send(xml)

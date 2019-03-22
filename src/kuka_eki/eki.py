@@ -22,11 +22,6 @@ class EKIDriver(object):
     def start(self):
         self._conn.send(b'0')
 
-    def _recv_state(self):
-        while True:
-            self._state = self._conn_state.recv(1024)
-            print(self._state)
-
     def _cmd_xml(self, cmdtype=0,
                  a1=0.0, a2=0.0, a3=0.0, a4=0.0, a5=0.0, a6=0.0,
                  x=0.0, y=0.0, z=0.0, a=0.0, b=0.0, c=0.0,
@@ -43,7 +38,7 @@ class EKIDriver(object):
                          vel=vel)
         return cmd
 
-    def ptp_axis(self, axis_cmd, max_velocity_scaling=1.0, cont=False):
+    def ptp_axis(self, axis_cmd, max_velocity_scaling=1.0):
         xml = self._cmd_xml(
             CmdType.PTP_AXIS.value,
             a1=axis_cmd[0],
@@ -55,7 +50,7 @@ class EKIDriver(object):
             vel=max_velocity_scaling)
         self._conn.send(xml)
 
-    def ptp_cart(self, cart_cmd, max_velocity_scaling=1.0, cont=False):
+    def ptp_cart(self, cart_cmd, max_velocity_scaling=1.0):
         xml = self._cmd_xml(
             CmdType.PTP_CART.value,
             x=cart_cmd[0],
@@ -67,7 +62,7 @@ class EKIDriver(object):
             vel=max_velocity_scaling)
         self._conn.send(xml)
 
-    def lin_cart(self, cart_cmd, max_velocity_scaling=1.0, cont=False):
+    def lin_cart(self, cart_cmd, max_velocity_scaling=1.0):
         xml = self._cmd_xml(
             CmdType.LIN_CART.value,
             x=cart_cmd[0],
@@ -79,7 +74,7 @@ class EKIDriver(object):
             vel=max_velocity_scaling)
         self._conn.send(xml)
 
-    def ptp_axis_rel(self, rel_axis_cmd, max_velocity_scaling=1.0, cont=False):
+    def ptp_axis_rel(self, rel_axis_cmd, max_velocity_scaling=1.0):
         xml = self._cmd_xml(
             CmdType.PTP_AXIS_REL.value,
             a1=rel_axis_cmd[0],
@@ -91,7 +86,7 @@ class EKIDriver(object):
             vel=max_velocity_scaling)
         self._conn.send(xml)
 
-    def lin_cart_rel(self, rel_cart_cmd, max_velocity_scaling=1.0, cont=False):
+    def lin_cart_rel(self, rel_cart_cmd, max_velocity_scaling=1.0):
         xml = self._cmd_xml(
             CmdType.LIN_CART_REL.value,
             x=rel_cart_cmd[0],

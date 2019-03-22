@@ -1,4 +1,0 @@
-&ACCESS RVO
-defdat kuka_eki_hw_interface
-   ext bas(bas_command  :in,real  :in )
-enddat

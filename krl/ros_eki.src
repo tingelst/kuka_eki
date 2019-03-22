@@ -1,0 +1,192 @@
+&ACCESS RVP
+&REL 64
+def  ros_eki()
+  ;fold Software License Agreement (BSD License)
+  ;
+  ; Copyright (c) 2018, 3M
+  ; Copyright (c) 2018, Norwegian University of Science and Technology
+  ; All rights reserved.
+  ;
+  ; Redistribution and use in source and binary forms, with or without
+  ; modification, are permitted provided that the following conditions are met:
+  ;
+  ;      * Redistributions of source code must retain the above copyright
+  ;        notice, this list of conditions and the following disclaimer.
+  ;      * Redistributions in binary form must reproduce the above copyright
+  ;        notice, this list of conditions and the following disclaimer in the
+  ;        documentation and/or other materials provided with the distribution.
+  ;      * Neither the name of the copyright holder, nor the names of its
+  ;        contributors may be used to endorse or promote products derived
+  ;        from this software without specific prior written permission.
+  ;
+  ; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  ; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  ; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  ; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  ; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  ; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  ; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  ; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  ; POSSIBILITY OF SUCH DAMAGE.
+  ;
+  ;fold Authors
+  ; Author: Brett Hemes (3M) <brhemes@mmm.com>
+  ; Modified by: Lars Tingelstad (NTNU) <lars.tingelstad@ntnu.no>
+  ;endfold
+  ;
+  ;endfold
+  
+  ;fold Declarations
+  decl int cmd_type_tgt
+  decl e6pos cart_pos_tgt
+  decl axis joint_pos_tgt
+  decl real max_vel_scale_tgt
+  decl int elements_read
+  ;endfold
+  
+  ;fold Ini
+  bas(#initmov, 0)  ; Basic initialization of axes
+  ;endfold
+  
+  
+  ; Initialize server
+  ;   Config located in C:/ROBOTER/Config/User/Common/EthernetKRL/ros_eki.xml
+  ;
+  ;   Utilized system resources:
+  ;     Flags:
+  ;       $flag[1]:        Indicates active client connection
+  ;     Interrupts:
+  ;       15: Calls eki_hw_iface_reset() on falling edge of $flag[1]
+  ros_eki_init()
+  
+  joint_pos_tgt = $axis_act_meas
+  cart_pos_tgt = $pos_act_mes
+  max_vel_scale_tgt = 1.0
+  cmd_type_tgt = 0
+
+  ; BCO (Block COincidence) run to current position
+  ; (requied for below loop continue before first incoming command)
+  ptp joint_pos_tgt
+  
+  ; Loop forever
+  $advance = 0
+  loop
+    ; Get new command from buffer if present
+    elements_read = ros_eki_get(cmd_type_tgt, joint_pos_tgt, cart_pos_tgt, max_vel_scale_tgt)  
+    $ov_pro = 100 * max_vel_scale_tgt
+    switch cmd_type_tgt
+    case 1
+      ptp joint_pos_tgt
+    case 2
+      ptp cart_pos_tgt
+    case 3
+      lin cart_pos_tgt
+    case 4
+      ptp_rel joint_pos_tgt
+    case 5
+      lin_rel cart_pos_tgt 
+    case 6
+      ros_eki_rsi()
+    endswitch
+  endloop
+  
+  ; Note: EKI channels delete on reset or deselect of this program
+  ;       See <ENVIRONMENT>Program</ENVIRONMENT> EKI config element
+end
+
+def ros_eki_init()
+  decl eki_status eki_ret
+  
+  ; Setup interrupts
+  ; Interrupt 15 - Connection cleanup on client disconnect
+  global interrupt decl 15 when $flag[1]==false do ros_eki_reset()
+  interrupt on 15
+  
+  ; Create and open EKI interface
+  eki_ret = eki_init("ros_eki")
+  eki_ret = eki_open("ros_eki")
+end
+
+deffct int ros_eki_available()
+  decl eki_status eki_ret
+  
+  if not $flag[1] then
+    return 0
+  endif
+  
+  eki_ret = eki_checkbuffer("ros_eki", "RobotCommand/Axis/@A1")
+  return eki_ret.buff
+endfct
+
+; eki_hw_iface_get
+deffct int ros_eki_get(cmd_type_cmd :out, joint_pos_cmd :out, cart_pos_cmd :out, max_vel_scale_cmd :out)
+  decl eki_status eki_ret
+  decl int cmd_type_cmd
+  decl e6pos cart_pos_cmd
+  decl axis joint_pos_cmd
+  decl real max_vel_scale_cmd
+  
+  if not $flag[1] then
+    return 0
+  endif
+  
+  eki_ret = eki_checkbuffer("ros_eki", "RobotCommand/Type")
+  if eki_ret.buff <= 0 then
+    return 0
+  endif
+  
+  eki_ret = eki_getint("ros_eki", "RobotCommand/Type", cmd_type_cmd)
+  
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Axis/@A1", joint_pos_cmd.a1)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Axis/@A2", joint_pos_cmd.a2)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Axis/@A3", joint_pos_cmd.a3)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Axis/@A4", joint_pos_cmd.a4)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Axis/@A5", joint_pos_cmd.a5)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Axis/@A6", joint_pos_cmd.a6)
+  
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Cart/@X", cart_pos_cmd.x)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Cart/@Y", cart_pos_cmd.y)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Cart/@Z", cart_pos_cmd.z)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Cart/@A", cart_pos_cmd.a)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Cart/@B", cart_pos_cmd.b)
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Cart/@C", cart_pos_cmd.c)
+  
+  eki_ret = eki_getreal("ros_eki", "RobotCommand/Velocity", max_vel_scale_cmd)
+  
+  return 1
+endfct
+
+def ros_eki_reset()
+  decl eki_status eki_ret
+  eki_ret = eki_clear("ros_eki")
+  eki_ret = eki_init("ros_eki")
+  eki_ret = eki_open("ros_eki")
+end
+
+def ros_eki_rsi()
+  decl int ret   ; return value for rsi commands
+  decl int contid   ; containerid
+  
+  ; create rsi context 
+  ret = rsi_create("ros_rsi.rsi",contid,true)
+  if (ret <> rsiok) then
+    halt
+  endif
+  
+  ; start rsi execution
+  ret = rsi_on(#absolute)
+  if (ret <> rsiok) then
+    halt
+  endif
+  
+  ; sensor guided movement
+  rsi_movecorr()
+  
+  ; turn off rsi 
+  ret = rsi_off()
+  if (ret <> rsiok) then
+    halt
+  endif
+end

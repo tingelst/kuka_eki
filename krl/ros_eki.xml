@@ -1,19 +1,18 @@
 <ETHERNETKRL>
    <CONFIGURATION>
       <EXTERNAL>
-         <TYPE>Client</TYPE>         <!-- Users connect as clients -->
+         <TYPE>Client</TYPE>         
       </EXTERNAL>
       <INTERNAL>
-         <ENVIRONMENT>Program</ENVIRONMENT>         <!-- Server run via robot interpreter -->
-         <!-- Allow buffering of up to 512 messages (system max) -->
+         <ENVIRONMENT>Program</ENVIRONMENT> 
          <BUFFERING Limit="512" />
-         <!-- Use $flag[1] to indicate alive/good connection status -->
          <ALIVE Set_Flag="1" />
-         <IP>192.168.250.20</IP>         <!-- IP address for EKI interface on robot controller (KRC) -->
-         <PORT>54600</PORT>         <!-- Port of EKI interface on robot controller (in [54600, 54615]) -->
-         <PROTOCOL>UDP</PROTOCOL>         <!-- Use UDP protocol -->
+         <IP>192.168.250.16</IP> 
+         <PORT>54600</PORT>
+         <PROTOCOL>UDP</PROTOCOL> 
       </INTERNAL>
    </CONFIGURATION>
+
    <RECEIVE>
       <XML>
          <!-- Command type -->
@@ -41,25 +40,25 @@
          <ELEMENT Tag="RobotCommand/Velocity" Type="REAL" />
       </XML>
    </RECEIVE>
+
    <SEND>
       <XML>
-         <!-- Joint state positions -->
          <ELEMENT Tag="RobotState/Axis/@A1"/>
          <ELEMENT Tag="RobotState/Axis/@A2"/>
          <ELEMENT Tag="RobotState/Axis/@A3"/>
          <ELEMENT Tag="RobotState/Axis/@A4"/>
          <ELEMENT Tag="RobotState/Axis/@A5"/>
          <ELEMENT Tag="RobotState/Axis/@A6"/>
-         <!-- Cartesian state positions -->
+
          <ELEMENT Tag="RobotState/Cart/@X"/>
          <ELEMENT Tag="RobotState/Cart/@Y"/>
          <ELEMENT Tag="RobotState/Cart/@Z"/>
          <ELEMENT Tag="RobotState/Cart/@A"/>
          <ELEMENT Tag="RobotState/Cart/@B"/>
          <ELEMENT Tag="RobotState/Cart/@C"/>
-         <!-- Interface state -->
-         <!-- Number of elements currently in command buffer -->
-         <ELEMENT Tag="RobotState/RobotCommand/@Size"/> 
+
+         <ELEMENT Tag="RobotState/RobotCommand/@Size"/>
+
          <ELEMENT Tag="RobotState" Set_Flag="56"/>
       </XML>
    </SEND>

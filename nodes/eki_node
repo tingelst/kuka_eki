@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 
+import numpy as np
+
 import rospy
+import tf
+
 from kuka_eki import EKIDriver
 
-from kuka_eki_msgs.msg import (PtpAxisCmd, PtpCartCmd, PtpCartPoseCmd)
+from kuka_eki_msgs.msg import (PtpAxisCmd, PtpCartCmd)
 
 from kuka_eki_msgs.srv import (
     MovePtpAxis, MovePtpAxisRequest, MovePtpAxisResponse)
@@ -30,14 +34,8 @@ class EKINode(object):
         self._ptp_axis_service = rospy.Service(
             name + '/ptp_axis', MovePtpAxis, self._ptp_axis)
 
-        self._ptp_axis_rel_service = rospy.Service(
-            name + '/ptp_axis_rel', MovePtpAxisRel, self._ptp_axis_rel)
-
         self._lin_cart_rel_service = rospy.Service(
             name + '/lin_cart', MoveLinCart, self._lin_cart)
-
-        self._lin_cart_rel_service = rospy.Service(
-            name + '/lin_cart_rel', MoveLinCartRel, self._lin_cart_rel)
 
         self._ptp_cart_service = rospy.Service(
             name + '/ptp_cart', MovePtpCart, self._ptp_cart)
@@ -59,58 +57,38 @@ class EKINode(object):
             req.command.max_velocity_scaling)
         return MovePtpAxisResponse()
 
-    def _ptp_axis_rel(self, req):
-        rospy.loginfo("Relative axis motion!")
-        self._driver.ptp_axis_rel([
-            req.command.a1,
-            req.command.a2,
-            req.command.a3,
-            req.command.a4,
-            req.command.a5,
-            req.command.a6],
-            req.command.max_velocity_scaling)
-        return MovePtpAxisRelResponse()
-
     def _lin_cart(self, req):
-        self._driver.lin_cart([
-            req.command.x,
-            req.command.y,
-            req.command.z,
-            req.command.a,
-            req.command.b,
-            req.command.c],
-            req.command.max_velocity_scaling)
+        xyzabc = self._to_xyzabc(req)
+        self._driver.lin_cart(xyzabc, req.command.max_velocity_scaling)
         return MoveLinCartResponse()
 
-    def _lin_cart_rel(self, req):
-        self._driver.lin_cart_rel([
-            req.command.x,
-            req.command.y,
-            req.command.z,
-            req.command.a,
-            req.command.b,
-            req.command.c],
-            req.command.max_velocity_scaling)
-        return MoveLinCartRelResponse()
-
     def _ptp_cart(self, req):
-        self._driver.ptp_cart([
-            req.command.x,
-            req.command.y,
-            req.command.z,
-            req.command.a,
-            req.command.b,
-            req.command.c],
-            req.command.max_velocity_scaling)
+        xyzabc = self._to_xyzabc(req)
+        self._driver.ptp_cart(xyzabc, req.command.max_velocity_scaling)
         return MovePtpCartResponse()
 
     def _start_rsi_axis(self, req):
         self._driver.start_rsi_axis()
         return StartRsiAxisResponse()
 
+    def _to_xyzabc(self, req):
+        x, y, z = np.array([req.command.pose.position.x,
+                            req.command.pose.position.y,
+                            req.command.pose.position.z]) * 1000.0
+
+        quaternion = np.array([req.command.pose.orientation.w,
+                               req.command.pose.orientation.x,
+                               req.command.pose.orientation.y,
+                               req.command.pose.orientation.z])
+
+        a, b, c = np.rad2deg(
+            tf.transformations.euler_from_quaternion(quaternion, 'rzyx'))
+
+        return [x, y, z, a, b, c]
+
 
 if __name__ == '__main__':
     name = 'eki_node'
     rospy.init_node(name)
-    eki_node = EKINode(name, ('192.168.250.20', 54600))
+    eki_node = EKINode(name, ('192.168.250.16', 54600))
     rospy.spin()

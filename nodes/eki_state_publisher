@@ -36,7 +36,7 @@ def joint_state_from_xml(xml):
 
 if __name__ == "__main__":
     pub = rospy.Publisher('joint_states', JointState, queue_size=10)
-    conn = UDPClient(('192.168.250.20', 54602))
+    conn = UDPClient(('192.168.250.16', 54602))
     conn.settimeout(0.1)
     conn.send(b'0')
     name = 'eki_state_publisher'

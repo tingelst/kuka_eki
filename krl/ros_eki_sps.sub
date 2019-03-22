@@ -1,0 +1,69 @@
+&ACCESS RVO
+&REL 17
+&PARAM TEMPLATE = C:\KRC\Roboter\Template\submit
+&PARAM EDITMASK = *
+DEF ros_eki_sps( )
+;FOLD DECLARATIONS
+  ;FOLD USER DECL  
+  
+  interrupt decl 15 when $flag[1]==false do ros_eki_sps_reset()
+  interrupt on 15
+
+  interrupt decl 16 when $timer_flag[1]==true do ros_eki_sps_send()
+  interrupt on 16
+
+  $timer[1] = -200
+  $timer_stop[1] = false
+
+  ;ENDFOLD (USER DECL)
+;ENDFOLD (DECLARATIONS)
+;FOLD INI
+  ;FOLD USER INIT
+  ros_eki_sps_reset()
+  ;ENDFOLD (USER INIT)
+;ENDFOLD (INI)
+LOOP
+;FOLD USER PLC
+;Make your modifications here
+;ENDFOLD (USER PLC)
+ENDLOOP
+;FOLD ;%{H};
+END
+;ENDFOLD
+;FOLD USER SUBROUTINE
+;Integrate your user defined subroutines
+
+def ros_eki_sps_send()
+  decl eki_status eki_ret
+
+  if $flag[1] then
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Axis/@A1", $axis_act_meas.a1)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Axis/@A2", $axis_act_meas.a2)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Axis/@A3", $axis_act_meas.a3)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Axis/@A4", $axis_act_meas.a4)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Axis/@A5", $axis_act_meas.a5)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Axis/@A6", $axis_act_meas.a6)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Pos/@X", $pos_act_mes.x)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Pos/@Y", $pos_act_mes.y)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Pos/@Z", $pos_act_mes.z)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Pos/@A", $pos_act_mes.a)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Pos/@B", $pos_act_mes.b)
+    eki_ret = eki_setreal("ros_eki_sps", "RobotState/Pos/@C", $pos_act_mes.c)
+  endif
+
+  if $flag[1] then
+    eki_ret = eki_send("ros_eki_sps", "RobotState")
+  endif
+
+  $timer[1] = -5
+
+end
+
+def ros_eki_sps_reset()
+  decl eki_status eki_ret
+
+  eki_ret = eki_clear("ros_eki_sps")
+  eki_ret = eki_init("ros_eki_sps")
+  eki_ret = eki_open("ros_eki_sps")
+end
+;ENDFOLD (USER SUBROUTINE)

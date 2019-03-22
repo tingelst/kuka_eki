@@ -1,0 +1,32 @@
+<ETHERNETKRL>
+	<CONFIGURATION>
+		<EXTERNAL>
+        <TYPE>Client</TYPE>
+		</EXTERNAL>
+      <INTERNAL>
+         <ENVIRONMENT>Submit</ENVIRONMENT>
+         <ALIVE Set_Flag="1"/>
+         <IP>192.168.250.16</IP>
+         <PORT>54602</PORT>
+         <PROTOCOL>UDP</PROTOCOL>
+      </INTERNAL>
+	</CONFIGURATION>
+	<RECEIVE>
+	</RECEIVE>
+	<SEND>
+		<XML>
+         <ELEMENT Tag="RobotState/Axis/@A1"/>
+         <ELEMENT Tag="RobotState/Axis/@A2"/>
+         <ELEMENT Tag="RobotState/Axis/@A3"/>
+         <ELEMENT Tag="RobotState/Axis/@A4"/>
+         <ELEMENT Tag="RobotState/Axis/@A5"/>
+         <ELEMENT Tag="RobotState/Axis/@A6"/>
+         <ELEMENT Tag="RobotState/Pos/@X"/>
+         <ELEMENT Tag="RobotState/Pos/@Y"/>
+         <ELEMENT Tag="RobotState/Pos/@Z"/>
+         <ELEMENT Tag="RobotState/Pos/@A"/>
+         <ELEMENT Tag="RobotState/Pos/@B"/>
+         <ELEMENT Tag="RobotState/Pos/@C"/>
+		</XML>
+	</SEND>
+</ETHERNETKRL>

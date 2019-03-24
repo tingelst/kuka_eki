@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+    <arg name="robot_ip" doc="IP of the EKI interface on the robot controller" />
+    <arg name="port" default="54600" doc="UDP port of the EKI interface on the robot controller" />
+
+    <!-- other ROS-Industrial nodes may expect the 'robot_ip_address' parameter to be present -->
+    <param name="robot_ip_address" type="str" value="$(arg robot_ip)" />
+
+    <!-- the interface node expects its parameters in the 'eki' namespace -->
+    <rosparam subst_value="true">
+      eki:
+        robot_address: "$(arg robot_ip)"
+        robot_port: "$(arg port)"
+    </rosparam>
+
+    <!-- main 'driver node': the EKI interface -->
+    <node name='kuka_eki_interface' pkg='kuka_eki' type="eki_node" output="screen"/>
+</launch>

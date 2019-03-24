@@ -1,6 +1,6 @@
 Header header
 
-kuka_eki_msgs/Pos pos
+kuka_eki_msgs/KrlPos pos
 float64 max_velocity_scaling
 
 ---

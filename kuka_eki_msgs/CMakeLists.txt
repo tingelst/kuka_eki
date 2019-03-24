@@ -11,21 +11,17 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
   DIRECTORY msg
   FILES
-  PtpAxisCmd.msg
-  PtpCartCmd.msg
-  PtpCartPoseCmd.msg
+  KrlAxis.msg
+  KrlPos.msg
 )
 
 add_service_files(
   DIRECTORY srv
   FILES
-  MoveLinCart.srv
-  MoveLinCartRel.srv
-  MovePtpAxis.srv
-  MovePtpAxisRel.srv
-  MovePtpCart.srv
-  StartRsiAxis.srv 
-  StartRsiCart.srv
+  LinPos.srv
+  PtpAxis.srv
+  PtpPos.srv
+  RsiAxis.srv 
 )
 
 generate_messages(

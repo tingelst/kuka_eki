@@ -1,6 +1,6 @@
 Header header
 
-kuka_eki_msgs/Axis axis
+kuka_eki_msgs/KrlAxis axis
 float64 max_velocity_scaling
 
 ---

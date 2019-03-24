@@ -1,3 +1,0 @@
-geometry_msgs/Pose Pose
-
-float64 max_velocity_scaling

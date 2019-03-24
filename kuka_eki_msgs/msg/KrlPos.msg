@@ -4,5 +4,5 @@ float64 z
 float64 a
 float64 b
 float64 c
-
-float64 max_velocity_scaling
+uint8 s
+uint8 t

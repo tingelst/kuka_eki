@@ -1,0 +1,6 @@
+Header header
+
+kuka_eki_msgs/Pos pos
+float64 max_velocity_scaling
+
+---

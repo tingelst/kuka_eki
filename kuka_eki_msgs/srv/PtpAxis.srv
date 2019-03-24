@@ -1,0 +1,8 @@
+Header header
+
+kuka_eki_msgs/Axis axis
+float64 max_velocity_scaling
+
+---
+
+

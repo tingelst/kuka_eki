@@ -7,41 +7,28 @@ import tf
 
 from kuka_eki import EKIDriver
 
-from kuka_eki_msgs.msg import (PtpAxisCmd, PtpCartCmd)
+from kuka_eki_msgs.msg import Axis, Pos
 
-from kuka_eki_msgs.srv import (
-    MovePtpAxis, MovePtpAxisRequest, MovePtpAxisResponse)
-
-from kuka_eki_msgs.srv import (
-    MovePtpAxisRel, MovePtpAxisRelRequest, MovePtpAxisRelResponse)
-
-from kuka_eki_msgs.srv import (
-    MoveLinCart, MoveLinCartRequest, MoveLinCartResponse)
-
-from kuka_eki_msgs.srv import (
-    MoveLinCartRel, MoveLinCartRelRequest, MoveLinCartRelResponse)
-
-from kuka_eki_msgs.srv import (
-    MovePtpCart, MovePtpCartRequest, MovePtpCartResponse)
-
-from kuka_eki_msgs.srv import (
-    StartRsiAxis, StartRsiAxisRequest, StartRsiAxisResponse)
+from kuka_eki_msgs.srv import LinPos, LinPosRequest, LinPosResponse
+from kuka_eki_msgs.srv import PtpAxis, PtpAxisRequest, PtpAxisResponse
+from kuka_eki_msgs.srv import PtpPos, PtpPosRequest, PtpPosResponse
+from kuka_eki_msgs.srv import RsiAxis, RsiAxisRequest, RsiAxisResponse
 
 
 class EKINode(object):
 
     def __init__(self, name, addr):
         self._ptp_axis_service = rospy.Service(
-            name + '/ptp_axis', MovePtpAxis, self._ptp_axis)
+            name + '/ptp_axis', PtpAxis, self._ptp_axis)
+
+        self._ptp_cart_service = rospy.Service(
+            name + '/ptp_pos', PtpPos, self._ptp_pos)
 
         self._lin_cart_rel_service = rospy.Service(
-            name + '/lin_cart', MoveLinCart, self._lin_cart)
+            name + '/lin_cart', LinPos, self._lin_pos)
 
         self._ptp_cart_service = rospy.Service(
-            name + '/ptp_cart', MovePtpCart, self._ptp_cart)
-
-        self._ptp_cart_service = rospy.Service(
-            name + '/rsi_axis', StartRsiAxis, self._start_rsi_axis)
+            name + '/rsi_axis', RsiAxis, self._start_rsi_axis)
 
         self._driver = EKIDriver(addr)
         self._driver.start()
@@ -55,21 +42,21 @@ class EKINode(object):
             req.command.a5,
             req.command.a6],
             req.command.max_velocity_scaling)
-        return MovePtpAxisResponse()
+        return PtpAxisResponse()
 
-    def _lin_cart(self, req):
+    def _lin_pos(self, req):
         xyzabc = self._to_xyzabc(req)
         self._driver.lin_cart(xyzabc, req.command.max_velocity_scaling)
-        return MoveLinCartResponse()
+        return LinPosResponse()
 
-    def _ptp_cart(self, req):
+    def _ptp_pos(self, req):
         xyzabc = self._to_xyzabc(req)
         self._driver.ptp_cart(xyzabc, req.command.max_velocity_scaling)
-        return MovePtpCartResponse()
+        return PtpPosResponse()
 
     def _start_rsi_axis(self, req):
         self._driver.start_rsi_axis()
-        return StartRsiAxisResponse()
+        return RsiAxisResponse()
 
     def _to_xyzabc(self, req):
         x, y, z = np.array([req.command.pose.position.x,

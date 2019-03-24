@@ -4,5 +4,3 @@ float64 a3
 float64 a4
 float64 a5
 float64 a6
-
-float64 max_velocity_scaling

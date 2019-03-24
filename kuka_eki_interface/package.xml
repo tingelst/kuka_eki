@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>kuka_eki</name>
+  <name>kuka_eki_interface</name>
   <version>0.0.1</version>
   <description>Control KUKA robots using the Ethernet.KRL interface</description>
   <author>Lars Tingelstad</author>
   <maintainer email="lars.tingelstad@ntnu.no">Lars Tingelstad</maintainer>
-  <license>BSD</license>
+  <license>BSD 3-Clause</license>
   <url type="bugtracker">https://github.com/tingelst/kuka_eki/issues</url>
   <url type="repository">https://github.com/tingelst/kuka_eki</url>
 

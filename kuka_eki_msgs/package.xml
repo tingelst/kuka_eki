@@ -6,8 +6,8 @@
   <author>Lars Tingelstad</author>
   <maintainer email="lars.tingelstad@ntnu.no">Lars Tingelstad</maintainer>
   <license>BSD</license>
-  <url type="bugtracker">https://github.com/tingelst/kuka_eki_msgs/issues</url>
-  <url type="repository">https://github.com/tingelst/kuka_eki_msgs</url>
+  <url type="bugtracker">https://github.com/tingelst/kuka_eki/issues</url>
+  <url type="repository">https://github.com/tingelst/kuka_eki</url>
 
   <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>python-catkin-pkg</buildtool_depend>

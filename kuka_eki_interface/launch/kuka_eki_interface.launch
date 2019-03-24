@@ -15,4 +15,7 @@
 
     <!-- main 'driver node': the EKI interface -->
     <node name='kuka_eki_interface' pkg='kuka_eki' type="eki_node" output="screen"/>
+
+    <!-- state publisher node -->
+    <node name='kuka_eki_state_publisher' pkg='kuka_eki' type="eki_state_publisher"/>
 </launch>

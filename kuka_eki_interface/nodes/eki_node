@@ -75,7 +75,9 @@ class EKINode(object):
 
 
 if __name__ == '__main__':
-    name = 'eki_node'
+    name = 'kuka_eki_interface'
     rospy.init_node(name)
-    eki_node = EKINode(name, ('192.168.250.16', 54600))
+    robot_ip = rospy.get_param('/eki/robot_ip')
+    port = rospy.get_param('/eki/port')
+    eki_node = EKINode(name, (robot_ip, port))
     rospy.spin()

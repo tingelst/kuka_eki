@@ -10,11 +10,10 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_python_setup()
 
-catkin_package(
-)
+catkin_package()
 
-install(PROGRAMS
-   scripts/eki_sim
-   nodes/eki_node
+catkin_install_python(PROGRAMS
+   nodes/kuka_eki_interface_node
+   nodes/kuka_eki_state_publisher
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

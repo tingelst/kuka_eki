@@ -1,5 +1,7 @@
-#  Copyright (c) 2019 Norwegian University of Science and Technology
-#  Use of this source code is governed by the BSD 3-Clause license, see LICENSE
+# Copyright (c) 2019 Norwegian University of Science and Technology
+# Use of this source code is governed by the BSD 3-Clause license, see LICENSE
+#
+# Author: Lars Tingelstad
 
 import numpy as np
 

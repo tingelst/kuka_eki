@@ -70,12 +70,12 @@ class EKIDriver(object):
         if isinstance(cmd, Pos):
             xml = self._cmd_xml(
                 CmdType.LIN_CART.value,
-                x=cart_cmd.x,
-                y=cart_cmd.y,
-                z=cart_cmd.z,
-                a=cart_cmd.a,
-                b=cart_cmd.b,
-                c=cart_cmd.c,
+                x=cmd.x,
+                y=cmd.y,
+                z=cmd.z,
+                a=cmd.a,
+                b=cmd.b,
+                c=cmd.c,
                 vel=max_velocity_scaling)
         else:
             raise TypeError("Expected argument of type Pos")

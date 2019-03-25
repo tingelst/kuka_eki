@@ -5,9 +5,9 @@ import numpy as np
 import rospy
 import tf
 
-from kuka_eki import EKIDriver
+from kuka_eki_interface import EKIDriver, Axis, Pos
 
-from kuka_eki_msgs.msg import Axis, Pos
+from kuka_eki_msgs.msg import KrlAxis, KrlPos
 
 from kuka_eki_msgs.srv import LinPos, LinPosRequest, LinPosResponse
 from kuka_eki_msgs.srv import PtpAxis, PtpAxisRequest, PtpAxisResponse
@@ -25,7 +25,7 @@ class EKINode(object):
             name + '/ptp_pos', PtpPos, self._ptp_pos)
 
         self._lin_cart_rel_service = rospy.Service(
-            name + '/lin_cart', LinPos, self._lin_pos)
+            name + '/lin_pos', LinPos, self._lin_pos)
 
         self._ptp_cart_service = rospy.Service(
             name + '/rsi_axis', RsiAxis, self._start_rsi_axis)
@@ -34,50 +34,47 @@ class EKINode(object):
         self._driver.start()
 
     def _ptp_axis(self, req):
-        self._driver.ptp_axis([
-            req.command.a1,
-            req.command.a2,
-            req.command.a3,
-            req.command.a4,
-            req.command.a5,
-            req.command.a6],
-            req.command.max_velocity_scaling)
+        cmd = Axis()
+        cmd.a1 = req.axis.a1
+        cmd.a2 = req.axis.a2
+        cmd.a3 = req.axis.a3
+        cmd.a4 = req.axis.a4
+        cmd.a5 = req.axis.a5
+        cmd.a6 = req.axis.a6
+        self._driver.ptp(cmd, req.max_velocity_scaling)
         return PtpAxisResponse()
 
     def _lin_pos(self, req):
-        xyzabc = self._to_xyzabc(req)
-        self._driver.lin_cart(xyzabc, req.command.max_velocity_scaling)
+        cmd = Pos()
+        cmd.x = req.pos.x
+        cmd.y = req.pos.y
+        cmd.z = req.pos.z
+        cmd.a = req.pos.a
+        cmd.b = req.pos.b
+        cmd.c = req.pos.c
+        self._driver.lin(cmd, req.max_velocity_scaling)
         return LinPosResponse()
 
     def _ptp_pos(self, req):
-        xyzabc = self._to_xyzabc(req)
-        self._driver.ptp_cart(xyzabc, req.command.max_velocity_scaling)
+        cmd = Pos()
+        cmd.x = req.pos.x
+        cmd.y = req.pos.y
+        cmd.z = req.pos.z
+        cmd.a = req.pos.a
+        cmd.b = req.pos.b
+        cmd.c = req.pos.c
+        self._driver.ptp(cmd, req.max_velocity_scaling)
         return PtpPosResponse()
 
     def _start_rsi_axis(self, req):
         self._driver.start_rsi_axis()
         return RsiAxisResponse()
 
-    def _to_xyzabc(self, req):
-        x, y, z = np.array([req.command.pose.position.x,
-                            req.command.pose.position.y,
-                            req.command.pose.position.z]) * 1000.0
-
-        quaternion = np.array([req.command.pose.orientation.w,
-                               req.command.pose.orientation.x,
-                               req.command.pose.orientation.y,
-                               req.command.pose.orientation.z])
-
-        a, b, c = np.rad2deg(
-            tf.transformations.euler_from_quaternion(quaternion, 'rzyx'))
-
-        return [x, y, z, a, b, c]
-
 
 if __name__ == '__main__':
     name = 'kuka_eki_interface'
     rospy.init_node(name)
     robot_ip = rospy.get_param('/eki/robot_ip')
-    port = rospy.get_param('/eki/port')
-    eki_node = EKINode(name, (robot_ip, port))
+    robot_port = rospy.get_param('/eki/robot_port')
+    eki_node = EKINode(name, (robot_ip, int(robot_port)))
     rospy.spin()

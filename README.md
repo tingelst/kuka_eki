@@ -20,37 +20,19 @@ If everything works as planned, you should now be able to control the robot and 
 
 The move the robot in PTP-mode to a point in joint space you can use e.g.
 ```bash 
-rosservice call /kuka_eki_interface/ptp_axis "header:
-  seq: 0
-  stamp:
-    secs: 0
-    nsecs: 0
-  frame_id: ''
-axis: {a1: 0.0, a2: -90.0, a3: 90.0, a4: 0.0, a5: 45.0, a6: 0.0}
+rosservice call /kuka_eki_interface/ptp_axis "axis: {a1: 0.0, a2: -90.0, a3: 90.0, a4: 0.0, a5: 45.0, a6: 0.0}
 max_velocity_scaling: 0.2" 
 ```
 Note that this command is in *degrees* and not in radians as is customary in ROS. 
 
 Similarly, if you want to move the robot in joint space to a cartesian pose you can use e.g.,
 ```bash
-rosservice call /kuka_eki_interface/ptp_pos "header:
-  seq: 0
-  stamp:
-    secs: 0
-    nsecs: 0
-  frame_id: ''
-pos: {x: 550.0, y: -200.0, z: 400.0, a: 180.0, b: 45.0, c: -180.0, s: 0, t: 0}
+rosservice call /kuka_eki_interface/ptp_pos "pos: {x: 550.0, y: -200.0, z: 400.0, a: 180.0, b: 45.0, c: -180.0, s: 0, t: 0}
 max_velocity_scaling: 0.2" 
 ```
 And, finally, if you want to move linearly to a cartesian pose you can use, e.g., 
 ```bash
-rosservice call /kuka_eki_interface/lin_pos "header:
-  seq: 0
-  stamp:
-    secs: 0
-    nsecs: 0
-  frame_id: ''
-pos: {x: 550.0, y: -200.0, z: 400.0, a: 180.0, b: 45.0, c: -180.0, s: 0, t: 0}
+rosservice call /kuka_eki_interface/lin_pos "pos: {x: 550.0, y: -200.0, z: 400.0, a: 180.0, b: 45.0, c: -180.0, s: 0, t: 0}
 max_velocity_scaling: 0.2" 
 ```
 Note that the positions are in *millimeters*, and that the Euler angles are in *degrees*. 

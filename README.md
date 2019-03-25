@@ -16,6 +16,8 @@ roslaunch roslaunch kuka_eki_interface test_eki.launch robot_ip:=192.168.250.16
 
 If everything works as planned, you should now be able to control the robot and visualize the current state in RViz.
 
+### Motion commands
+
 The move the robot in PTP-mode to a point in joint space you can use e.g.
 ```bash 
 rosservice call /kuka_eki_interface/ptp_axis "header:

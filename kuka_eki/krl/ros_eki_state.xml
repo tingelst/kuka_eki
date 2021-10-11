@@ -1,0 +1,33 @@
+<ETHERNETKRL>
+    <CONFIGURATION>
+        <EXTERNAL>
+            <TYPE>Client</TYPE>
+        </EXTERNAL>
+        <INTERNAL>
+            <ENVIRONMENT>Program</ENVIRONMENT>
+            <ALIVE Set_Flag="2" />
+            <IP>192.168.250.16</IP>
+            <PORT>54601</PORT>
+            <PROTOCOL>TCP</PROTOCOL>
+        </INTERNAL>
+    </CONFIGURATION>
+    <RECEIVE></RECEIVE>
+    <SEND>
+        <XML>
+            <ELEMENT Tag="RobotState/Axis/@A1" />
+            <ELEMENT Tag="RobotState/Axis/@A2" />
+            <ELEMENT Tag="RobotState/Axis/@A3" />
+            <ELEMENT Tag="RobotState/Axis/@A4" />
+            <ELEMENT Tag="RobotState/Axis/@A5" />
+            <ELEMENT Tag="RobotState/Axis/@A6" />
+            <ELEMENT Tag="RobotState/Pos/@X" />
+            <ELEMENT Tag="RobotState/Pos/@Y" />
+            <ELEMENT Tag="RobotState/Pos/@Z" />
+            <ELEMENT Tag="RobotState/Pos/@A" />
+            <ELEMENT Tag="RobotState/Pos/@B" />
+            <ELEMENT Tag="RobotState/Pos/@C" />
+            <ELEMENT Tag="RobotState/Pos/@S" />
+            <ELEMENT Tag="RobotState/Pos/@T" />
+        </XML>
+    </SEND>
+</ETHERNETKRL>

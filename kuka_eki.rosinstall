@@ -1,4 +1,0 @@
-- git:
-    local-name: kuka_experimental
-    uri: https://github.com/ros-industrial/kuka_experimental.git
-    version: indigo-devel

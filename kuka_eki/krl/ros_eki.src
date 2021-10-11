@@ -1,0 +1,206 @@
+&ACCESS RVP
+&REL 64
+def  ros_eki()
+  ;fold Software License Agreement (BSD License)
+  ;
+  ; Copyright (c) 2018, 3M
+  ; Copyright (c) 2018, Norwegian University of Science and Technology
+  ; All rights reserved.
+  ;
+  ; Redistribution and use in source and binary forms, with or without
+  ; modification, are permitted provided that the following conditions are met:
+  ;
+  ;      * Redistributions of source code must retain the above copyright
+  ;        notice, this list of conditions and the following disclaimer.
+  ;      * Redistributions in binary form must reproduce the above copyright
+  ;        notice, this list of conditions and the following disclaimer in the
+  ;        documentation and/or other materials provided with the distribution.
+  ;      * Neither the name of the copyright holder, nor the names of its
+  ;        contributors may be used to endorse or promote products derived
+  ;        from this software without specific prior written permission.
+  ;
+  ; THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  ; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  ; IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ; ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  ; LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  ; CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  ; SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  ; INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  ; CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+  ; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+  ; POSSIBILITY OF SUCH DAMAGE.
+  ;
+  ;fold Authors
+  ; Author: Brett Hemes (3M) <brhemes@mmm.com>
+  ; Modified by: Lars Tingelstad (NTNU) <lars.tingelstad@ntnu.no>
+  ;endfold
+  ;
+  ;endfold
+  
+  ;fold Declarations
+  decl int cmd_type_tgt
+  decl e6pos cart_pos_tgt
+  decl axis joint_pos_tgt
+  decl real max_vel_scale_tgt
+  decl int elements_read
+  ;endfold
+  
+  ;fold Ini
+  bas(#initmov, 0)  ; Basic initialization of axes
+  ;endfold
+  
+  
+  ; Initialize server
+  ;   Config located in C:/ROBOTER/Config/User/Common/EthernetKRL/ros_eki.xml
+  ;
+  ;   Utilized system resources:
+  ;     Flags:
+  ;       $flag[1]:        Indicates active motion client connection
+  ;       $flag[2]:        Indicates active state client connection
+  ;     Interrupts:
+  ;       15: Calls ros_eki_reset() on falling edge of $flag[1]
+  ;       16: Calls ros_eki_state_reset() on falling edge of $flag[2]
+  ;       17: Calls ros_eki_state_send() on rising edge of $timer_flag[2]
+  ros_eki_init()
+  
+  joint_pos_tgt = $axis_act_meas
+  cart_pos_tgt = $pos_act_mes
+  max_vel_scale_tgt = 1.0
+  cmd_type_tgt = 0
+
+  ; BCO (Block COincidence) run to current position
+  ; (requied for below loop continue before first incoming command)
+  ptp joint_pos_tgt
+  
+  ; Loop forever
+  $advance = 0
+  loop
+    ; Get new command from buffer if present
+    elements_read = ros_eki_get(cmd_type_tgt, joint_pos_tgt, cart_pos_tgt, max_vel_scale_tgt)  
+    $ov_pro = 100 * max_vel_scale_tgt
+    switch cmd_type_tgt
+    case 1
+      ptp joint_pos_tgt
+    case 2
+      ptp cart_pos_tgt
+    case 3
+      lin cart_pos_tgt
+    case 4
+      ptp_rel joint_pos_tgt
+    case 5
+      lin_rel cart_pos_tgt 
+    endswitch
+  endloop
+  
+  ; Note: EKI channels delete on reset or deselect of this program
+  ;       See <ENVIRONMENT>Program</ENVIRONMENT> EKI config element
+end
+
+def ros_eki_init()
+  decl eki_status eki_ret
+  
+  ; Interrupt 15 - Connection cleanup on motion client disconnect
+  global interrupt decl 15 when $flag[1]==false do ros_eki_reset()
+  interrupt on 15
+
+  ; Interrupt 16 - Connection cleanup on state client disconnect
+  global interrupt decl 16 when $flag[2]==false do ros_eki_state_reset()
+  interrupt on 16
+
+  ; Interrupt 17 - Timer interrupt for periodic state transmission
+  global interrupt decl 17 when $timer_flag[2]==true do ros_eki_state_send()
+  interrupt on 17
+  wait sec 0.012          ; Wait for next interpolation cycle
+  $timer[2] = -200        ; Time in [ms] before first interrupt call
+  $timer_stop[2] = false  ; Start timer 1
+
+  
+  ; Create and open EKI motion interface
+  eki_ret = eki_init("ros_eki_motion")
+  eki_ret = eki_open("ros_eki_motion")
+
+  ; Create and open EKI state interface
+  eki_ret = eki_init("ros_eki_state")
+  eki_ret = eki_open("ros_eki_state")
+end
+
+def ros_eki_state_send()
+  decl eki_status eki_ret
+
+  ; If connection alive
+  if $flag[2] then
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Axis/@A1", $axis_act_meas.a1)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Axis/@A2", $axis_act_meas.a2)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Axis/@A3", $axis_act_meas.a3)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Axis/@A4", $axis_act_meas.a4)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Axis/@A5", $axis_act_meas.a5)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Axis/@A6", $axis_act_meas.a6)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@X", $pos_act_mes.x)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@Y", $pos_act_mes.y)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@Z", $pos_act_mes.z)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@A", $pos_act_mes.a)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@B", $pos_act_mes.b)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@C", $pos_act_mes.c)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@S", $pos_act_mes.s)
+    eki_ret = eki_setreal("ros_eki_state", "RobotState/Pos/@T", $pos_act_mes.t)
+  endif
+
+  if $flag[2] then  ; Make sure connection hasn't died while updating xml structure
+    eki_ret = eki_send("ros_eki_state", "RobotState")
+  endif
+
+  ; Set timer for next interrupt [ms]
+  $timer[2] = -10  ; ~10 ms for above send + 10 ms interrupt timer -> ~50 Hz state transmission
+end
+
+deffct int ros_eki_get(cmd_type_cmd :out, joint_pos_cmd :out, cart_pos_cmd :out, max_vel_scale_cmd :out)
+  decl eki_status eki_ret
+  decl int cmd_type_cmd
+  decl e6pos cart_pos_cmd
+  decl axis joint_pos_cmd
+  decl real max_vel_scale_cmd
+  
+  if not $flag[1] then
+    return 0
+  endif
+  
+  eki_ret = eki_checkbuffer("ros_eki_motion", "RobotCommand/Type")
+  if eki_ret.buff <= 0 then
+    return 0
+  endif
+  
+  eki_ret = eki_getint("ros_eki_motion", "RobotCommand/Type", cmd_type_cmd)
+  
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Axis/@A1", joint_pos_cmd.a1)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Axis/@A2", joint_pos_cmd.a2)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Axis/@A3", joint_pos_cmd.a3)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Axis/@A4", joint_pos_cmd.a4)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Axis/@A5", joint_pos_cmd.a5)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Axis/@A6", joint_pos_cmd.a6)
+  
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Cart/@X", cart_pos_cmd.x)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Cart/@Y", cart_pos_cmd.y)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Cart/@Z", cart_pos_cmd.z)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Cart/@A", cart_pos_cmd.a)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Cart/@B", cart_pos_cmd.b)
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Cart/@C", cart_pos_cmd.c)
+  
+  eki_ret = eki_getreal("ros_eki_motion", "RobotCommand/Velocity", max_vel_scale_cmd)
+  
+  return 1
+endfct
+
+def ros_eki_reset()
+  decl eki_status eki_ret
+  eki_ret = eki_clear("ros_eki_motion")
+  eki_ret = eki_init("ros_eki_motion")
+  eki_ret = eki_open("ros_eki_motion")
+end
+
+def ros_eki_state_reset()
+  decl eki_status eki_ret
+  eki_ret = eki_clear("ros_eki_state")
+  eki_ret = eki_init("ros_eki_state")
+  eki_ret = eki_open("ros_eki_state")
+end

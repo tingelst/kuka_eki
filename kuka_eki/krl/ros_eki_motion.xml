@@ -1,0 +1,43 @@
+<ETHERNETKRL>
+    <CONFIGURATION>
+        <EXTERNAL>
+            <TYPE>Client</TYPE>
+        </EXTERNAL>
+        <INTERNAL>
+            <ENVIRONMENT>Program</ENVIRONMENT>
+            <BUFFERING Limit="512" />
+            <ALIVE Set_Flag="1" />
+            <IP>192.168.250.16</IP>
+            <PORT>54600</PORT>
+            <PROTOCOL>TCP</PROTOCOL>
+        </INTERNAL>
+    </CONFIGURATION>
+
+    <RECEIVE>
+        <XML>
+            <!-- Command type -->
+            <!-- 1: PTP joint space -->
+            <!-- 2: PTP operational space -->
+            <!-- 3: LIN operational space -->
+            <!-- 4: PTP_REL joint space -->
+            <!-- 5: LIN_REL operational space -->
+            <ELEMENT Tag="RobotCommand/Type" Type="INT" />
+            <!-- E6AXIS command -->
+            <ELEMENT Tag="RobotCommand/Axis/@A1" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Axis/@A2" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Axis/@A3" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Axis/@A4" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Axis/@A5" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Axis/@A6" Type="REAL" />
+            <!-- E6POS command -->
+            <ELEMENT Tag="RobotCommand/Cart/@X" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Cart/@Y" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Cart/@Z" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Cart/@A" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Cart/@B" Type="REAL" />
+            <ELEMENT Tag="RobotCommand/Cart/@C" Type="REAL" />
+            <!-- Max velocity scaling -->
+            <ELEMENT Tag="RobotCommand/Velocity" Type="REAL" />
+        </XML>
+    </RECEIVE>
+</ETHERNETKRL>

@@ -15,3 +15,12 @@ from kuka_eki.eki import EkiMotionClient
 from kuka_eki.krl import Pos, Axis
 
 
+target = Axis(0.0, -90.0, 90.0, 0.0, 0.0, 0.0)
+
+eki_motion_client = EkiMotionClient("192.168.250.16")
+
+eki_motion_client.connect()
+
+eki_motion_client.ptp(target)
+
+

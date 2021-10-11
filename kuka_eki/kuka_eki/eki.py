@@ -19,8 +19,10 @@ from kuka_eki.krl import Axis, Pos, CommandType
 
 
 class EkiMotionClient:
-    def __init__(self, address: Address) -> None:
-        self._tcp_client = TcpClient(address)
+    MOTION_PORT: int = 54600
+
+    def __init__(self, ip_address: str) -> None:
+        self._tcp_client = TcpClient((ip_address, self.MOTION_PORT))
 
     def connect(self) -> None:
         self._tcp_client.connect()
@@ -116,3 +118,18 @@ class EkiMotionClient:
         else:
             raise TypeError("Expected argument of type Pos")
         self._tcp_client.sendall(xml.encode())
+
+
+class EkiStateClient:
+    STATE_PORT: int = 54601
+
+    def __init__(self, ip_address: str) -> None:
+        self._tcp_client = TcpClient((ip_address, self.STATE_PORT))
+
+    def connect(self):
+        self._tcp_client.connect()
+
+    def state(self):
+        data = self._tcp_client.recv(1024)
+
+        return data

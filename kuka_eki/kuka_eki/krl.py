@@ -15,27 +15,49 @@
 from typing import Union
 from dataclasses import dataclass
 from enum import IntEnum
+import xml.etree.ElementTree as ET
+
 
 @dataclass
 class Axis:
-    a1: float
-    a2: float
-    a3: float
-    a4: float
-    a5: float
-    a6: float
+    a1: float = 0.0
+    a2: float = 0.0
+    a3: float = 0.0
+    a4: float = 0.0
+    a5: float = 0.0
+    a6: float = 0.0
+
+    def to_xml(self):
+        xml = (
+            "<Axis "
+            f'A1="{self.a1}" A2="{self.a2}" A3="{self.a3}"'
+            f'A4="{self.a4}" A5="{self.a5}" A6="{self.a6}"'
+            "</Axis>"
+        )
+        return xml
 
 
 @dataclass
 class Pos:
-    x: float
-    y: float
-    z: float
-    a: float
-    b: float
-    c: float
-    s: float
-    t: float
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
+    a: float = 0.0
+    b: float = 0.0
+    c: float = 0.0
+    s: int = 0
+    t: int = 0
+
+    def to_xml(self):
+        xml = (
+            "<Cart"
+            f'X="{self.x}" Y="{self.y}" Z="{self.z}"'
+            f'A="{self.a}" B="{self.b}" C="{self.c}"'
+            f'S="{self.s}" T="{self.t}">'
+            "</Cart>"
+        )
+        return xml
+
 
 class CommandType(IntEnum):
     PTP_AXIS = 1
@@ -44,8 +66,55 @@ class CommandType(IntEnum):
     PTP_AXIS_REL = 4
     LIN_CART_REL = 5
 
+
 @dataclass
 class RobotCommand:
     command_type: CommandType
     command: Union[Axis, Pos]
     velocity_scaling: float
+
+    def to_xml(self):
+        root = ET.Element("RobotCommand")
+        ET.SubElement(root, "Type").text = str(1)
+
+        ET.SubElement(
+            root,
+            "Pos",
+            {"X": str(0.0), "Y": "0.0", "Z": "0.0", "A": "0.0", "B": "0.0", "C": "0.0"},
+        )
+        return ET.tostring(root)
+
+        xml = "<RobotCommand>"
+        xml += f"<Type>{self.command_type}</Type>"
+        if isinstance(self.command, Axis):
+            xml += self.command.to_xml()
+            xml += Pos().to_xml()
+        elif isinstance(self.command, Pos):
+            xml += Axis().to_xml()
+            xml += self.command.to_xml()
+        else:
+            raise TypeError("Expected argument of type Axis or Pos")
+        xml += f"<Velocity>{self.velocity_scaling}</Velocity>"
+        xml += "</RobotCommand>"
+        return xml
+
+
+@dataclass
+class RobotState:
+    axis: Axis
+    pos: Pos
+
+    @classmethod
+    def from_bytes(cls, bytes_: bytes):
+        pass
+
+
+if __name__ == "__main__":
+
+    cmdtype = CommandType.PTP_AXIS
+    cmd = Axis(1, 2, 3, 4, 5, 6)
+
+    cmd = Pos(1, 2, 3, 4, 5, 6, 7, 8)
+    vel = 1.0
+
+    s = RobotCommand(cmdtype, cmd, vel)

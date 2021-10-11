@@ -15,15 +15,7 @@
 from typing import Union
 from enum import IntEnum
 from kuka_eki.tcp_client import Address, TcpClient
-from kuka_eki.krl import Axis, Pos
-
-
-class CmdType(IntEnum):
-    PTP_AXIS = 1
-    PTP_CART = 2
-    LIN_CART = 3
-    PTP_AXIS_REL = 4
-    LIN_CART_REL = 5
+from kuka_eki.krl import Axis, Pos, CommandType
 
 
 class EkiMotionClient:
@@ -52,7 +44,7 @@ class EkiMotionClient:
         t: int = 0,
         vel: float = 0.0,
     ):
-        xml = b"""<RobotCommand>
+        xml = """<RobotCommand>
   <Type>{cmdtype}</Type>
   <Axis A1="{a1}" A2="{a2}" A3="{a3}" A4="{a4}" A5="{a5}" A6="{a6}"></Axis>
   <Cart X="{x}" Y="{y}" Z="{z}" A="{a}" B="{b}" C="{c}" S="{s}" T="{t}"></Cart>
@@ -82,7 +74,7 @@ class EkiMotionClient:
         xml: str
         if isinstance(cmd, Axis):
             xml = self._cmd_xml(
-                CmdType.PTP_AXIS,
+                CommandType.PTP_AXIS,
                 a1=cmd.a1,
                 a2=cmd.a2,
                 a3=cmd.a3,
@@ -93,7 +85,7 @@ class EkiMotionClient:
             )
         elif isinstance(cmd, Pos):
             xml = self._cmd_xml(
-                CmdType.PTP_CART,
+                CommandType.PTP_CART,
                 x=cmd.x,
                 y=cmd.y,
                 z=cmd.z,
@@ -112,7 +104,7 @@ class EkiMotionClient:
         xml: str
         if isinstance(cmd, Pos):
             xml = self._cmd_xml(
-                CmdType.LIN_CART,
+                CommandType.LIN_CART,
                 x=cmd.x,
                 y=cmd.y,
                 z=cmd.z,

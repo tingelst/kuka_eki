@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
 from dataclasses import dataclass
-
+from enum import IntEnum
 
 @dataclass
 class Axis:
@@ -35,3 +36,16 @@ class Pos:
     c: float
     s: float
     t: float
+
+class CommandType(IntEnum):
+    PTP_AXIS = 1
+    PTP_CART = 2
+    LIN_CART = 3
+    PTP_AXIS_REL = 4
+    LIN_CART_REL = 5
+
+@dataclass
+class RobotCommand:
+    command_type: CommandType
+    command: Union[Axis, Pos]
+    velocity_scaling: float

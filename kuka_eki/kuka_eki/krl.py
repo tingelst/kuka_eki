@@ -82,8 +82,8 @@ class CommandType(IntEnum):
 
 @dataclass
 class RobotCommand:
-    command_type: CommandType 
-    target: Union[Axis, Pos] 
+    command_type: CommandType
+    target: Union[Axis, Pos]
     velocity_scaling: float
 
     def to_xml(self) -> bytes:

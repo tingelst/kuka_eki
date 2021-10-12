@@ -57,7 +57,7 @@ class Pos:
     def to_xml(self, root: ET.Element) -> ET.Element:
         element = ET.SubElement(
             root,
-            "Pos",
+            "Cart",
             {
                 "X": str(self.x),
                 "Y": str(self.y),
@@ -82,8 +82,8 @@ class CommandType(IntEnum):
 
 @dataclass
 class RobotCommand:
-    command_type: CommandType
-    target: Union[Axis, Pos]
+    command_type: CommandType 
+    target: Union[Axis, Pos] 
     velocity_scaling: float
 
     def to_xml(self) -> bytes:

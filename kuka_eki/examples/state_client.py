@@ -17,4 +17,5 @@ eki_state_client = EkiStateClient("192.168.250.20")
 eki_state_client.connect()
 
 while True:
+    print(eki_state_client.state().pos)
     print(eki_state_client.state().axis)

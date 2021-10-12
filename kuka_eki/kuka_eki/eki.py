@@ -14,7 +14,7 @@
 
 from typing import Union
 from enum import IntEnum
-from kuka_eki.kuka_eki.krl import RobotCommand, RobotState
+from kuka_eki.krl import RobotCommand, RobotState
 from kuka_eki.tcp_client import Address, TcpClient
 from kuka_eki.krl import Axis, Pos, CommandType
 
@@ -29,42 +29,32 @@ class EkiMotionClient:
         self._tcp_client.connect()
 
     def ptp(self, target: Union[Axis, Pos], max_velocity_scaling=1.0) -> None:
-        command: RobotCommand = RobotCommand()
+        command_type: CommandType
         if isinstance(target, Axis):
-            command.command_type = CommandType.PTP_AXIS
+            command_type = CommandType.PTP_AXIS
         elif isinstance(target, Pos):
-            command.command_type = CommandType.PTP_CART
+            command_type = CommandType.PTP_CART
         else:
             raise TypeError("Expected argument of type Axis or Pos")
-        command.target = target
-        command.velocity_scaling = max_velocity_scaling
+        command: RobotCommand = RobotCommand(command_type, target, max_velocity_scaling)
         self._tcp_client.sendall(command.to_xml())
 
     def ptp_rel(self, target: Axis, max_velocity_scaling: float = 1.0) -> None:
         if not isinstance(target, Axis):
             raise TypeError("Expected argument of Axis")
-        command: RobotCommand = RobotCommand()
-        command.command_type = CommandType.PTP_AXIS_REL
-        command.target = target
-        command.velocity_scaling = max_velocity_scaling
+        command: RobotCommand = RobotCommand(CommandType.PTP_AXIS_REL, target, max_velocity_scaling)
         self._tcp_client.sendall(command.to_xml())
 
     def lin(self, target: Pos, max_velocity_scaling=1.0) -> None:
         if not isinstance(target, Pos):
             raise TypeError("Expected argument of Pos")
-        command: RobotCommand = RobotCommand()
-        command.command_type = CommandType.LIN_CART
-        command.target = target
-        command.velocity_scaling = max_velocity_scaling
+        command: RobotCommand = RobotCommand(CommandType.LIN_CART, target, max_velocity_scaling)
         self._tcp_client.sendall(command.to_xml())
 
     def lin_rel(self, target: Pos, max_velocity_scaling=1.0) -> None:
         if not isinstance(target, Pos):
             raise TypeError("Expected argument of Pos")
-        command: RobotCommand = RobotCommand()
-        command.command_type = CommandType.LIN_CART_REL
-        command.target = target
-        command.velocity_scaling = max_velocity_scaling
+        command: RobotCommand = RobotCommand(CommandType.LIN_CART_REL, target, max_velocity_scaling)
         self._tcp_client.sendall(command.to_xml())
 
 

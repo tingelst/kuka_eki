@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from __future__ import annotations
 from typing import Union
 from dataclasses import dataclass
 from enum import IntEnum
@@ -27,14 +27,20 @@ class Axis:
     a5: float = 0.0
     a6: float = 0.0
 
-    def to_xml(self):
-        xml = (
-            "<Axis "
-            f'A1="{self.a1}" A2="{self.a2}" A3="{self.a3}"'
-            f'A4="{self.a4}" A5="{self.a5}" A6="{self.a6}"'
-            "</Axis>"
+    def to_xml(self, root: ET.Element) -> ET.Element:
+        element = ET.SubElement(
+            root,
+            "Axis",
+            {
+                "A1": str(self.a1),
+                "A2": str(self.a2),
+                "A3": str(self.a3),
+                "A4": str(self.a4),
+                "A5": str(self.a5),
+                "A6": str(self.a6),
+            },
         )
-        return xml
+        return element
 
 
 @dataclass
@@ -48,15 +54,22 @@ class Pos:
     s: int = 0
     t: int = 0
 
-    def to_xml(self):
-        xml = (
-            "<Cart"
-            f'X="{self.x}" Y="{self.y}" Z="{self.z}"'
-            f'A="{self.a}" B="{self.b}" C="{self.c}"'
-            f'S="{self.s}" T="{self.t}">'
-            "</Cart>"
+    def to_xml(self, root: ET.Element) -> ET.Element:
+        element = ET.SubElement(
+            root,
+            "Pos",
+            {
+                "X": str(self.x),
+                "Y": str(self.y),
+                "Z": str(self.z),
+                "A": str(self.a),
+                "B": str(self.b),
+                "C": str(self.c),
+                "S": str(self.s),
+                "T": str(self.t),
+            },
         )
-        return xml
+        return element
 
 
 class CommandType(IntEnum):
@@ -70,51 +83,50 @@ class CommandType(IntEnum):
 @dataclass
 class RobotCommand:
     command_type: CommandType
-    command: Union[Axis, Pos]
+    target: Union[Axis, Pos]
     velocity_scaling: float
 
-    def to_xml(self):
+    def to_xml(self) -> bytes:
         root = ET.Element("RobotCommand")
-        ET.SubElement(root, "Type").text = str(1)
-
-        ET.SubElement(
-            root,
-            "Pos",
-            {"X": str(0.0), "Y": "0.0", "Z": "0.0", "A": "0.0", "B": "0.0", "C": "0.0"},
-        )
+        ET.SubElement(root, "Type").text = str(self.command_type.value)
+        self.target.to_xml(root)
+        Pos().to_xml(root) if isinstance(self.target, Axis) else Axis().to_xml(root)
+        ET.SubElement(root, "Velocity").text = str(self.velocity_scaling)
         return ET.tostring(root)
-
-        xml = "<RobotCommand>"
-        xml += f"<Type>{self.command_type}</Type>"
-        if isinstance(self.command, Axis):
-            xml += self.command.to_xml()
-            xml += Pos().to_xml()
-        elif isinstance(self.command, Pos):
-            xml += Axis().to_xml()
-            xml += self.command.to_xml()
-        else:
-            raise TypeError("Expected argument of type Axis or Pos")
-        xml += f"<Velocity>{self.velocity_scaling}</Velocity>"
-        xml += "</RobotCommand>"
-        return xml
 
 
 @dataclass
 class RobotState:
-    axis: Axis
-    pos: Pos
+    axis: Axis = Axis()
+    pos: Pos = Pos()
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes):
-        pass
+    def from_xml(cls, xml: bytes) -> RobotState:
+        root: ET.Element = ET.fromstring(xml)
+        attrib: dict[str, str] = root.find("Pos").attrib
+        pos = Pos(
+            attrib["X"],
+            attrib["Y"],
+            attrib["Z"],
+            attrib["A"],
+            attrib["B"],
+            attrib["C"],
+            attrib["S"],
+            attrib["T"],
+        )
+        attrib = root.find("Axis").attrib
+        axis = Axis(
+            attrib["A1"],
+            attrib["A2"],
+            attrib["A3"],
+            attrib["A4"],
+            attrib["A5"],
+            attrib["A6"],
+        )
+        return RobotState(axis, pos)
 
-
-if __name__ == "__main__":
-
-    cmdtype = CommandType.PTP_AXIS
-    cmd = Axis(1, 2, 3, 4, 5, 6)
-
-    cmd = Pos(1, 2, 3, 4, 5, 6, 7, 8)
-    vel = 1.0
-
-    s = RobotCommand(cmdtype, cmd, vel)
+    def to_xml(self) -> bytes:
+        root: ET.Element = ET.Element("RobotState")
+        self.axis.to_xml(root)
+        self.pos.to_xml(root)
+        return ET.tostring(root)

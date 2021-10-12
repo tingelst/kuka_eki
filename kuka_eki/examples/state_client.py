@@ -11,23 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from kuka_eki.eki import EkiMotionClient 
-from kuka_eki.krl import Pos, Axis
-from kuka_eki.tcp_client import TcpClient
+from kuka_eki.eki import EkiStateClient
 
-
-target = Axis(0.0, -90.0, 90.0, 0.0, 0.0, 0.0)
-
-eki_state_client = TcpClient(("192.168.250.20", 54601))
-
+eki_state_client = EkiStateClient("192.168.250.20")
 eki_state_client.connect()
 
 while True:
-    data = eki_state_client.recv(1024)
-    print(data)
-
-# eki_motion_client.connect()
-
-# eki_motion_client.ptp(target)
-
-
+    print(eki_state_client.state().axis)
